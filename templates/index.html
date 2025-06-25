@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>数学电子书管理系统</title>
+</head>
+<body>
+    <h1>📚 数学电子书列表</h1>
+
+    <form action="/search" method="get">
+        🔍 搜索书名：<input type="text" name="q" />
+        <input type="submit" value="搜索" />
+    </form>
+
+    <table border="1" cellpadding="5" cellspacing="0">
+        <tr>
+            <th>ID</th>
+            <th>书名</th>
+            <th>文件路径</th>
+            <th>操作</th>
+        </tr>
+        {% for id, title, path in books %}
+        <tr>
+            <td>{{ id }}</td>
+            <td>
+                <form action="/update/{{ id }}" method="post" style="margin:0;">
+                    <input type="text" name="new_title" value="{{ title }}" style="width:200px;" />
+                    <input type="submit" value="修改" />
+                </form>
+            </td>
+            <td>
+                {{ path }}<br />
+                <a href="/pdfs/{{ path.split('/')[-1] }}" target="_blank">📖 打开</a>
+            </td>
+            <td>
+                <a href="/delete/{{ id }}" onclick="return confirm('确认删除吗？');">🗑️ 删除</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
