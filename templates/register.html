@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>注册新用户</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #eef3f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .register-container {
+      background-color: #fff;
+      padding: 30px 40px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 320px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    label, input {
+      display: block;
+      width: 100%;
+      margin-top: 10px;
+    }
+    input[type="text"],
+    input[type="password"] {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 10px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .message {
+      color: red;
+      text-align: center;
+      margin-top: 10px;
+    }
+    .login-link {
+      text-align: center;
+      margin-top: 15px;
+    }
+    .login-link a {
+      color: #007bff;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+<div class="register-container">
+  <h2>注册新用户</h2>
+  <form method="post">
+    <label for="username">用户名</label>
+    <input type="text" name="username" minlength="4" required>
+
+    <label for="password">密码</label>
+    <input type="password" name="password" minlength="6" required>
+
+    <label for="confirm_password">确认密码</label>
+    <input type="password" name="confirm_password" minlength="6" required>
+
+    <button type="submit">注册</button>
+  </form>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="message">{{ messages[0] }}</div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="login-link">
+    <a href="{{ url_for('login') }}">已有账号？点击登录</a>
+  </div>
+</div>
+</body>
+</html>

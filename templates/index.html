@@ -1,42 +1,263 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh">
 <head>
-    <meta charset="UTF-8" />
-    <title>数学电子书管理系统</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>数学电子书管理系统</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      margin: 0;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+
+    header {
+      background-color: #3f51b5;
+      color: white;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.6rem;
+    }
+
+    .auth-links a {
+      color: white;
+      margin-left: 1rem;
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+
+    .auth-links a:hover {
+      text-decoration: underline;
+    }
+
+    main {
+      display: flex;
+      gap: 1rem;
+      padding: 1rem;
+    }
+
+    .left-panel {
+      flex: 3;
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .right-panel {
+      flex: 2;
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    input[type="text"],
+    input[type="file"],
+    select,
+    textarea {
+      flex: 1;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+
+    input[type="submit"],
+    button {
+      padding: 0.5rem 1rem;
+      background-color: #3f51b5;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    input[type="submit"]:hover,
+    button:hover {
+      background-color: #303f9f;
+    }
+
+    .category {
+      margin-bottom: 2rem;
+    }
+
+    .category-title {
+      font-size: 1.2rem;
+      margin: 1rem 0 0.5rem;
+      border-bottom: 2px solid #eee;
+      font-weight: bold;
+      color: #444;
+    }
+
+    .book-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .pdf-link {
+      max-width: 60%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #3f51b5;
+      text-decoration: none;
+    }
+
+    .course-note {
+      margin-top: 1rem;
+    }
+
+    .course-note textarea {
+      width: 100%;
+      height: 100px;
+    }
+
+    .right-panel h2 {
+      margin-top: 0;
+      font-size: 1.3rem;
+    }
+
+    .right-panel h3 {
+      margin-top: 1.2rem;
+      font-size: 1.1rem;
+      color: #666;
+    }
+  </style>
 </head>
 <body>
-    <h1>📚 数学电子书列表</h1>
+  <header>
+    <h1>数学电子书管理系统</h1>
+    <div class="auth-links">
+      {% if session.get('user_id') %}
+        <span>欢迎您，{{ session.get('username') }}</span>
+        <a href="{{ url_for('logout') }}">退出</a>
+      {% else %}
+        <a href="{{ url_for('login') }}">登录</a>
+        <a href="{{ url_for('register') }}">注册</a>
+      {% endif %}
+    </div>
+  </header>
 
-    <form action="/search" method="get">
-        🔍 搜索书名：<input type="text" name="q" />
+  <main>
+    <section class="left-panel">
+      {% if session.get('is_admin') %}
+      <form action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" required />
+        <select name="category" required>
+          <option value="数学">数学</option>
+          <option value="计算数学">计算数学</option>
+          <option value="课程资料">课程资料</option>
+          <option value="其他">其他</option>
+        </select>
+        <select name="sub_category">
+          <option value="">无子分类</option>
+          <option value="课程1">课程1</option>
+          <option value="课程2">课程2</option>
+        </select>
+        <input type="submit" value="上传 PDF" />
+      </form>
+      {% endif %}
+
+      <form method="post" action="/">
+        <input type="text" name="search" placeholder="搜索书籍..." value="{{ search_keyword }}" />
         <input type="submit" value="搜索" />
-    </form>
+      </form>
 
-    <table border="1" cellpadding="5" cellspacing="0">
-        <tr>
-            <th>ID</th>
-            <th>书名</th>
-            <th>文件路径</th>
-            <th>操作</th>
-        </tr>
-        {% for id, title, path in books %}
-        <tr>
-            <td>{{ id }}</td>
-            <td>
-                <form action="/update/{{ id }}" method="post" style="margin:0;">
-                    <input type="text" name="new_title" value="{{ title }}" style="width:200px;" />
-                    <input type="submit" value="修改" />
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          {% for msg in messages %}
+            <div>{{ msg }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      {% for category, books in books_by_category.items() %}
+        <div class="category">
+          <div class="category-title">{{ category }}</div>
+          {% for book in books %}
+            <div class="book-item">
+              <a class="pdf-link" href="{{ url_for('serve_pdf', filename=book.filename) }}" target="_blank">{{ book.title }}</a>
+              {% if session.get('is_admin') %}
+              <div>
+                <form action="{{ url_for('delete_book', book_id=book.id) }}" method="get" style="display:inline;">
+                  <button type="submit">删除</button>
                 </form>
-            </td>
-            <td>
-                {{ path }}<br />
-                <a href="/pdfs/{{ path.split('/')[-1] }}" target="_blank">📖 打开</a>
-            </td>
-            <td>
-                <a href="/delete/{{ id }}" onclick="return confirm('确认删除吗？');">🗑️ 删除</a>
-            </td>
-        </tr>
+                <button onclick="showRenameForm({{ book.id }}, '{{ book.title|e }}')">改名</button>
+              </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </section>
+
+    <aside class="right-panel">
+      <h2>课程资料</h2>
+      {% for subcat in ["课程1", "课程2"] %}
+        <h3>{{ subcat }}</h3>
+        {% for book in course_books[subcat] %}
+          <div class="book-item">
+            <a class="pdf-link" href="{{ url_for('serve_pdf', filename=book.filename) }}" target="_blank">{{ book.title }}</a>
+            {% if session.get('is_admin') %}
+            <div>
+              <form action="{{ url_for('delete_book', book_id=book.id) }}" method="get" style="display:inline;">
+                <button type="submit">删除</button>
+              </form>
+              <button onclick="showRenameForm({{ book.id }}, '{{ book.title|e }}')">改名</button>
+            </div>
+            {% endif %}
+          </div>
+        {% else %}
+          <p style="color:#999; font-style:italic;">暂无 {{ subcat }} 资料</p>
         {% endfor %}
-    </table>
+      {% endfor %}
+
+      {% if session.get('is_admin') %}
+      <h3>课程备注</h3>
+      <form action="{{ url_for('update_course_note') }}" method="post" class="course-note">
+        <textarea name="course_note">{{ course_note|default('') }}</textarea>
+        <input type="submit" value="保存备注" />
+      </form>
+      {% endif %}
+    </aside>
+  </main>
+
+  <script>
+    function showRenameForm(bookId, oldTitle) {
+      const newTitle = prompt("请输入新书名：", oldTitle);
+      if (newTitle && newTitle.trim() !== "") {
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = "/rename_book/" + bookId;
+
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = "new_title";
+        input.value = newTitle.trim();
+
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+      }
+    }
+  </script>
 </body>
 </html>
