@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh">
 <head>
@@ -192,7 +193,8 @@
       {% for category, books in books_by_category.items() %}
         <div class="category">
           <div class="category-title">{{ category }}</div>
-          {% for book in books %}
+
+          {% for book in books[:3] %}
             <div class="book-item">
               <a class="pdf-link" href="{{ url_for('serve_pdf', filename=book.filename) }}" target="_blank">{{ book.title }}</a>
               {% if session.get('is_admin') %}
@@ -205,6 +207,25 @@
               {% endif %}
             </div>
           {% endfor %}
+
+          {% if books|length > 3 %}
+            <div id="more-{{ loop.index }}" style="display: none;">
+              {% for book in books[3:] %}
+                <div class="book-item">
+                  <a class="pdf-link" href="{{ url_for('serve_pdf', filename=book.filename) }}" target="_blank">{{ book.title }}</a>
+                  {% if session.get('is_admin') %}
+                  <div>
+                    <form action="{{ url_for('delete_book', book_id=book.id) }}" method="get" style="display:inline;">
+                      <button type="submit">删除</button>
+                    </form>
+                    <button onclick="showRenameForm({{ book.id }}, '{{ book.title|e }}')">改名</button>
+                  </div>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+            <button id="btn-{{ loop.index }}" onclick="toggleMore({{ loop.index }})">显示更多</button>
+          {% endif %}
         </div>
       {% endfor %}
     </section>
@@ -247,15 +268,25 @@
         const form = document.createElement("form");
         form.method = "POST";
         form.action = "/rename_book/" + bookId;
-
         const input = document.createElement("input");
         input.type = "hidden";
         input.name = "new_title";
         input.value = newTitle.trim();
-
         form.appendChild(input);
         document.body.appendChild(form);
         form.submit();
+      }
+    }
+
+    function toggleMore(index) {
+      const moreDiv = document.getElementById('more-' + index);
+      const btn = document.getElementById('btn-' + index);
+      if (moreDiv.style.display === 'none') {
+        moreDiv.style.display = 'block';
+        btn.innerText = '隐藏';
+      } else {
+        moreDiv.style.display = 'none';
+        btn.innerText = '显示更多';
       }
     }
   </script>
